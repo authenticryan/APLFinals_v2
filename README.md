@@ -4,6 +4,8 @@
 
 **Live URL:** `https://ipl-companion-983163235471.asia-south1.run.app`
 
+**Presentation:** [IPL Security Intelligence Platform — Gamma Slides](https://gamma.app/docs/IPL-Security-Intelligence-Platform-dokaw0si0h5qnzi)
+
 | Route | App |
 |---|---|
 | `/` | Citizen companion (ticket check-in, food booking, AI briefing) |
