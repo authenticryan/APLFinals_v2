@@ -95,7 +95,7 @@ export default function VIPDashboard({ user, checkinData }) {
                 startIcon={<EscalatorWarningIcon />}
                 onClick={handleRequestEscort}
               >
-                Request Security Escort
+                Transmit Location Securely
               </Button>
             </>
           )}
@@ -103,7 +103,7 @@ export default function VIPDashboard({ user, checkinData }) {
           {escortStatus === 'loading' && (
             <Box sx={{ textAlign: 'center', py: 2 }}>
               <CircularProgress size={32} sx={{ color: tier.color }} />
-              <Typography variant="body2" color="text.secondary" mt={1.5}>Notifying security team…</Typography>
+              <Typography variant="body2" color="text.secondary" mt={1.5}>Transmitting your location securely…</Typography>
             </Box>
           )}
 
@@ -113,13 +113,13 @@ export default function VIPDashboard({ user, checkinData }) {
               icon={<CheckCircleIcon />}
               sx={{ alignItems: 'flex-start' }}
             >
-              <Typography variant="subtitle2" fontWeight={700}>Escort Requested</Typography>
+              <Typography variant="subtitle2" fontWeight={700}>Location Transmitted</Typography>
               <Typography variant="body2">
-                Your security team has been notified. An officer will meet you at{' '}
-                <strong>{user.escortGate || user.gate}</strong> within <strong>3–5 minutes</strong>.
+                Your position has been securely shared with the security team at{' '}
+                <strong>{user.escortGate || user.gate}</strong>. You will be alerted when any convoy enters a <strong>3 km radius</strong>.
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                Ref: ESC-{Date.now().toString(36).toUpperCase().slice(-6)} · {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                Ref: LOC-{Date.now().toString(36).toUpperCase().slice(-6)} · {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
               </Typography>
             </Alert>
           )}

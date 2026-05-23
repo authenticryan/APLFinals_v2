@@ -61,7 +61,7 @@ export default function AISecurityBriefing({ ticket }) {
 
         <Chip
           icon={<PsychologyIcon />}
-          label="Gemini 1.5 Flash"
+          label="Gemini 2.0 Flash"
           size="small"
           sx={{ bgcolor: 'rgba(255,179,0,0.2)', color: '#FFD54F', border: '1px solid rgba(255,179,0,0.3)', mb: 2 }}
         />

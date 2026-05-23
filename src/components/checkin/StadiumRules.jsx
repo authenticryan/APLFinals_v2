@@ -17,6 +17,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import Alert from '@mui/material/Alert';
 import { ALLOWED_ITEMS, PROHIBITED_ITEMS, GENERAL_CONDITIONS } from '../../data/stadiumRules';
 import { useAppContext } from '../../context/AppContext';
+import BagCheckChatbot from './BagCheckChatbot';
 
 export default function StadiumRules({ onNext, onBack }) {
   const { updateCheckin } = useAppContext();
@@ -93,6 +94,11 @@ export default function StadiumRules({ onNext, onBack }) {
           ))}
         </CardContent>
       </Card>
+
+      {/* Bag check chatbot */}
+      <Box sx={{ mb: 3 }}>
+        <BagCheckChatbot />
+      </Box>
 
       {/* Acknowledgement */}
       <Card sx={{ mb: 3, bgcolor: 'primary.main', color: '#fff' }}>
