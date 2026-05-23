@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
@@ -8,6 +9,7 @@ import CheckinPage from './pages/CheckinPage';
 import DashboardPage from './pages/DashboardPage';
 import SecurityApp from './security/SecurityApp';
 import UserManagementApp from './user-management/UserManagementApp';
+import LandingSelector from './components/LandingSelector';
 
 function CitizenApp() {
   return (
@@ -25,13 +27,35 @@ function CitizenApp() {
   );
 }
 
+function RootRoute() {
+  const [fanSelected, setFanSelected] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSelect = (id) => {
+    if (id === 'fan') setFanSelected(true);
+    else if (id === 'security') navigate('/security/');
+    else if (id === 'management') navigate('/user-management/');
+  };
+
+  if (!fanSelected) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <LandingSelector onSelect={handleSelect} />
+      </ThemeProvider>
+    );
+  }
+
+  return <CitizenApp />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/security/*" element={<SecurityApp />} />
         <Route path="/user-management/*" element={<UserManagementApp />} />
-        <Route path="/*" element={<CitizenApp />} />
+        <Route path="/*" element={<RootRoute />} />
       </Routes>
     </BrowserRouter>
   );

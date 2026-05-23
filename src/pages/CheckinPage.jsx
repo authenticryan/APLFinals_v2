@@ -9,6 +9,10 @@ export default function CheckinPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, []);
+
+  useEffect(() => {
     if (!currentUser) { navigate('/', { replace: true }); return; }
     if (checkinData.checkedIn) { navigate('/dashboard', { replace: true }); }
   }, [currentUser, checkinData.checkedIn]);

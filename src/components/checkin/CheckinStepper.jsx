@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -14,6 +15,11 @@ const STEPS = ['Your Tier', 'Lockers', 'Food', 'Rules', 'Done'];
 export default function CheckinStepper() {
   const { checkinData, updateCheckin } = useAppContext();
   const step = checkinData.step || 0;
+
+  useEffect(() => {
+    const id = setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0);
+    return () => clearTimeout(id);
+  }, [step]);
 
   const next = () => updateCheckin({ step: step + 1 });
   const back = () => updateCheckin({ step: step - 1 });
