@@ -6,21 +6,33 @@ import { AppProvider } from './context/AppContext';
 import AuthPage from './pages/AuthPage';
 import CheckinPage from './pages/CheckinPage';
 import DashboardPage from './pages/DashboardPage';
+import SecurityApp from './security/SecurityApp';
+import UserManagementApp from './user-management/UserManagementApp';
 
-export default function App() {
+function CitizenApp() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<AuthPage />} />
-            <Route path="/checkin" element={<CheckinPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AuthPage />} />
+          <Route path="/checkin" element={<CheckinPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </AppProvider>
     </ThemeProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/security/*" element={<SecurityApp />} />
+        <Route path="/user-management/*" element={<UserManagementApp />} />
+        <Route path="/*" element={<CitizenApp />} />
+      </Routes>
+    </BrowserRouter>
   );
 }

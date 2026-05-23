@@ -1,6 +1,14 @@
-# IPL Stadium Companion
+# IPL Stadium Companion + Security Ops Centre
 
-> A smart, AI-powered stadium management companion for IPL match attendees — built on Google Cloud, Firebase, and Gemini AI.
+> A full-stack, AI-powered stadium management platform for IPL match day — dual-app architecture covering both audience-facing check-in and a professional security staff operations centre. Built on Google Cloud, Firebase Firestore, and Gemini AI.
+
+**Live URL:** `https://ipl-companion-983163235471.asia-south1.run.app`
+
+| Route | App |
+|---|---|
+| `/` | Citizen companion (ticket check-in, food booking, AI briefing) |
+| `/security/` | Security Ops Centre (staff login, KYC, real-time ops dashboard) |
+| `/user-management/` | RBAC staff roster management |
 
 ---
 
@@ -8,73 +16,60 @@
 
 Managing 50,000+ attendees at an IPL match involves fragmented, manual processes: paper passes checked at gates, no pre-arrival coordination, ad-hoc food queues, and security briefings that are generic rather than personalised to each attendee's tier and access zone. High-profile attendees (VVIP, VIP, players) require tailored security protocols that can't be communicated effectively through printed literature.
 
-**This app solves it** by giving every attendee — from VVIP to general public — a personalised digital companion that handles check-in, logistics, and security briefing in one place, before they walk through the gate.
+Meanwhile, **security staff** operate with radio communication, paper rosters, and no unified situational awareness — no real-time gate occupancy, no convoy tracking, no digital threat monitoring.
+
+**This platform solves both sides**: a citizen companion for every attendee, and a professional operations dashboard for every security officer.
 
 ---
 
 ## What It Does
 
-The app covers the full attendee journey end-to-end:
+### Citizen App (`/`)
 
 1. **Ticket Authentication** — attendees enter their ticket number; the system loads their seat, tier, gate, and access profile
-2. **Tiered Check-In Flow** — a 5-step guided process: tier confirmation → locker selection (real-time availability) → food pre-booking → rules acknowledgment → digital check-in confirmation
+2. **Tiered Check-In Flow** — 5-step guided process: tier confirmation → locker selection (first-come-first-served via Firestore) → food pre-booking → rules acknowledgment → digital check-in confirmation
 3. **AI-Powered Security Briefing** — Google Gemini 1.5 Flash generates a personalised briefing covering entry protocols, authorised movement zones, and emergency procedures specific to each attendee's security tier
-4. **Tier-Specific Dashboards** — VIP/VVIP attendees see security escort requests, authorised zone chips, and priority directions; general public see gate navigation and seat wayfinding
-5. **Security Escort Request** — Tier 1–4 attendees can request a physical escort, which is logged to Firestore in real time with a unique reference number
+4. **Tier-Specific Dashboards** — VIP/VVIP attendees see security escort requests and priority directions; general public see gate navigation and seat wayfinding
+5. **Security Escort Request** — Tier 1–4 attendees can request a physical escort, logged to Firestore in real time
+
+### Security Ops Centre (`/security/`)
+
+1. **Biometric Auth** — phone number → OTP → simulated 6-stage KYC (badge scan, hash verification, CCTNS check, shift validation, duty roster, confirmation). Full dark-theme UI with animated progress
+2. **Role-Based Dashboard** — each tier sees a tailored dashboard: VVIP gets convoy summary + critical alerts; VIP gets escort queue; General gets gate occupancy overview
+3. **VVIP Convoy Manager** — full convoy tracking with 5-state status machine (assembling → en-route → gate-approach → clearing → admitted), ETA countdown, member list, gate clearance progress, exposure risk alerts, advance/halt actions
+4. **Attendee Queue** — live queue management with admit/flag/process actions, 20s simulated arrivals, per-tier filtering
+5. **Escort Requests** — tier-filtered escort list, accept/complete workflow, urgency detection (>8 min unassigned)
+6. **Gate Management** — 8-gate real-time grid, capacity bars, overflow detection, Alert Staff / Divert / Close Gate actions, 8s live simulation
+7. **Digital Threat Monitor** — drone detection with radar pulse animation (4 scanner arrays), RF signal health (6 bands with 5s fluctuations), cyber threat panel (signal jammer + intrusion attempts)
+8. **Notification Centre** — priority-sorted (CRITICAL → LOW), read/unread state, tier filtering, mark-all-read
+
+### User Management (`/user-management/`)
+
+- Full security staff roster: view, add, edit, remove officers
+- Role-based access control matrix (6 tiers × 6 permission types)
+- Filter by tier, search by name/badge/gate/department
+- Backed by `localStorage` fallback (Firestore `security_staff` collection in production)
 
 ### Security Tiers
 
-| Tier | Category | Security Authority |
-|---|---|---|
-| 1 | VVIP (Presidential Suite) | Special Protection Group (SPG) |
-| 2 | VIP & International Dignitaries | State Special Branch + CAPF |
-| 3 | Players & Support Staff | Franchise SLOs + Team Integrity Officers |
-| 4 | Sponsors, Press & Stadium Staff | Private Turnkey Managers + Local Police |
-| 5 | General Public | General stadium security |
+| Tier | Category | Security Authority | Demo Phone |
+|---|---|---|---|
+| VVIP | Presidential / Head of State | Special Protection Group (SPG) | `+91 00001 00001` |
+| VIP | Dignitaries / State Guests | State Special Branch + CAPF | `+91 00002 00002` |
+| PLAYER | Players & Support Staff | Franchise SLOs + Integrity Officers | `+91 00003 00003` |
+| PRESS | Media & Sponsors | Private Turnkey + Local Police | `+91 00004 00004` |
+| GENERAL | General Public Security | State Police | `+91 00005 00005` |
+| ADMIN | Ops Commander | Full system access | `+91 00006 00006` |
 
----
-
-## Functional Fulfillment
-
-The prototype solves the core problem across three dimensions:
-
-**Personalisation at scale** — rather than a one-size-fits-all briefing, every attendee's experience is generated from their specific data: seat, gate, access zones, security authority, and verification protocol. Gemini 1.5 Flash is prompted with structured ticket data and returns a natural-language brief tailored to that individual.
-
-**Operational logistics** — locker assignment is tracked in real time via Firestore, preventing double-booking. Food orders are pre-captured before the match to reduce queuing. Escort requests are persisted with timestamps and reference numbers for security team pickup.
-
-**Graceful offline fallback** — when Firebase is unavailable, all operations fall back to `localStorage` transparently. The entire check-in flow and dashboard remain fully functional. This also means the app runs in demo mode with zero backend configuration, making it evaluable without any setup.
-
----
-
-## Scalability & Security
-
-### Scalability
-
-| Concern | Approach |
-|---|---|
-| Frontend scaling | Stateless React SPA — served from CDN or nginx, zero server-side state |
-| Database scaling | Firebase Firestore — horizontally scalable NoSQL, built for concurrent writes |
-| Container hosting | Google Cloud Run — auto-scales from zero to thousands of instances on demand |
-| Session state | `sessionStorage` (per-tab, not persisted to server) — no sticky sessions needed |
-| Concurrent locker booking | Firestore document-level writes; each locker is a separate document — no table-lock contention |
-
-For a live deployment, Firestore Security Rules would enforce tier-based document access (e.g., only SPG-tier users can read Tier 1 escort requests), and Cloud Run can be placed behind a Google Cloud Load Balancer to handle match-day traffic spikes.
-
-### Security
-
-- **No credentials in code** — all API keys are injected via environment variables at build time (`VITE_` prefix for Vite, Docker `--build-arg` for CI/CD)
-- **Session-scoped user state** — user data lives in `sessionStorage`, not `localStorage`; it is cleared on tab close and on logout
-- **Firebase fallback isolation** — the localStorage fallback is used only when Firebase is explicitly unconfigured, not as a silent failure mode
-- **Input trust boundaries** — ticket lookup is against a local static dataset (demo) or Firestore; there is no raw query construction from user input
-- **No PII transmitted** — the Gemini prompt contains only ticket metadata (name, tier, seat, gate); no phone numbers or financial data are sent to the AI
+All demo OTPs: **123456**
 
 ---
 
 ## Google AI SDK Usage
 
-### `@google/generative-ai` (Gemini)
+### `@google/generative-ai` (Gemini 1.5 Flash)
 
-The app uses the official Google Generative AI JavaScript SDK to call **Gemini 1.5 Flash**:
+Used in `src/services/geminiService.js` to generate personalised per-attendee security briefings:
 
 ```js
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -84,42 +79,63 @@ const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 const result = await model.generateContent(prompt);
 ```
 
-The prompt is structured with explicit attendee profile fields so Gemini can generate a grounded, factually accurate briefing rather than a hallucinated one. Output is instructed to be plain-text paragraphs (no markdown) for clean UI rendering.
+The prompt is structured with attendee tier, seat, gate, access zones, and security authority. Output is instructed to be plain-text paragraphs (no markdown) for clean UI rendering.
 
-**Demo mode** — if the API key is missing or unprefixed, the component renders a static placeholder brief. The UI is fully functional in either state.
+**Demo mode** — if `VITE_GEMINI_API_KEY` is not set or set to `YOUR_GEMINI_API_KEY`, the component shows a static placeholder brief. Swap in a real key to activate live AI briefings.
 
-### `firebase` (Firestore)
+### `firebase` (Firestore v10 Modular SDK)
 
-The official Firebase JS SDK is used for:
-- `getFirestore`, `doc`, `getDoc`, `setDoc`, `updateDoc` — locker availability and assignment
-- `addDoc`, `serverTimestamp` — escort request logging with server-side timestamps
-- `getDocs`, `collection` — seeding and reading locker state
+- `getFirestore`, `doc`, `getDoc`, `setDoc`, `updateDoc` — locker availability, assignment, and gate metrics
+- `addDoc`, `serverTimestamp` — escort request logging
+- `getDocs`, `collection` — reading queue, convoy, and threat data
 
-All Firebase calls are wrapped with try/catch and fall back to localStorage, so the app never hard-crashes on a Firestore error.
+All Firebase calls are wrapped with `try/catch` + `localStorage` fallback — the entire app works in offline/demo mode with zero backend.
+
+---
+
+## Architecture
+
+```
+src/
+├── App.jsx                      # Top-level BrowserRouter; splits / vs /security/* vs /user-management/*
+│
+├── pages/ + components/         # Citizen app (ThemeProvider: blue/gold)
+│   ├── auth/                    # Ticket entry + phone OTP
+│   ├── checkin/                 # 5-step stepper (Tier → Locker → Food → Rules → Done)
+│   └── dashboard/               # GeneralDashboard / VIPDashboard + AISecurityBriefing
+│
+├── security/                    # Security Ops Centre (ThemeProvider: dark navy)
+│   ├── SecurityApp.jsx          # Route: /security/*
+│   ├── context/SecurityContext  # Officer state (sessionStorage)
+│   ├── data/                    # securityStaff, gateData, convoyData, threatData
+│   ├── services/securityDb.js   # Firebase + localStorage dual-mode
+│   └── components/
+│       ├── auth/SecurityAuth    # Phone → OTP → KYC 6-stage
+│       ├── common/SecurityLayout# Sidebar + mobile bottom nav, role-aware
+│       ├── dashboard/           # VVIPSecDashboard, VIPSec, PlayerSec, PressSec, GeneralSec, AdminSec
+│       ├── convoy/              # ConvoyManager (status machine, ETA, exposure risk)
+│       ├── queue/               # AttendeeQueue (live 20s arrivals)
+│       ├── escorts/             # EscortRequests (accept/complete)
+│       ├── gate/                # GateManagement (8s simulation)
+│       ├── threats/             # ThreatMonitor (drone + RF + cyber)
+│       └── notifications/       # NotificationCenter (priority sorted)
+│
+└── user-management/             # RBAC staff management (ThemeProvider: dark)
+    ├── UserManagementApp.jsx
+    ├── components/StaffTable, StaffForm
+    └── pages/StaffListPage
+```
 
 ---
 
 ## Code Quality
 
-```
-src/
-├── services/          # All external API calls (Firebase, Gemini) isolated here
-│   ├── firebase.js    # Firestore helpers + localStorage fallback layer
-│   └── geminiService.js  # Prompt construction + Gemini SDK call
-├── context/
-│   └── AppContext.jsx  # Single source of truth; sessionStorage sync on every update
-├── data/
-│   ├── tickets.js     # Ticket records + tier config constants
-│   ├── foodMenu.js    # Menu items + order total helper
-│   └── stadiumRules.js
-├── components/        # Presentational components, no direct API calls
-└── pages/             # Route entry points only — delegate to components
-```
-
 Key patterns:
-- **Service layer** — Firebase and Gemini calls are never made directly from components; all go through `services/`
-- **Fallback-first design** — every external call has a documented, tested fallback path
-- **Single context** — all mutable app state lives in `AppContext`; components read and write through named actions (`login`, `logout`, `updateCheckin`)
+- **Service layer isolation** — Firebase and Gemini calls never made directly from components; all routed through `src/services/` and `src/security/services/`
+- **Fallback-first design** — every external call has a documented `localStorage` fallback path; app never crashes without Firebase
+- **Real-time simulation** — `setInterval` + `useEffect` cleanup for gate metrics (8s), RF bands (5s), queue arrivals (20s), convoy ETA countdown (60s)
+- **Role-aware rendering** — single `getNavItems(tier)` drives nav; `getQueue(tier)` / `getEscortRequests(tier)` filter data server-side
+- **Dual theme architecture** — citizen app uses light blue/gold (`src/theme.js`); security app uses dark navy (`src/security/theme.js`); each wraps its own `ThemeProvider`
 
 ---
 
@@ -127,59 +143,51 @@ Key patterns:
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 18 + Vite |
-| UI components | Material UI v5 |
+| Frontend | React 18 + Vite 5 |
+| UI components | Material UI v5 (light + dark themes) |
 | AI | Google Gemini 1.5 Flash (`@google/generative-ai`) |
-| Database | Firebase Firestore |
+| Database | Firebase Firestore v10 (modular SDK) |
 | PWA | `vite-plugin-pwa` + Workbox (offline asset caching) |
-| Container | Docker (multi-stage: Node 20 builder → nginx 1.27 Alpine) |
-| Hosting | Google Cloud Run |
+| Container | Docker multi-stage (Node 20 Alpine builder → nginx 1.27 Alpine) |
+| CI/CD | Google Cloud Build (`cloudbuild.yaml` with substitutions) |
+| Hosting | Google Cloud Run (auto-scale, port 8080, asia-south1) |
 
 ---
 
-## GCP Deployment
+## Deployment
 
-The app is containerised and Cloud Run-ready out of the box.
-
-### Build and deploy
+### One-command deploy (Cloud Run from source)
 
 ```bash
-# Build the Docker image (API keys injected at build time as Vite env vars)
-docker build \
-  --build-arg VITE_FIREBASE_API_KEY=<key> \
-  --build-arg VITE_FIREBASE_AUTH_DOMAIN=<domain> \
-  --build-arg VITE_FIREBASE_PROJECT_ID=<project> \
-  --build-arg VITE_FIREBASE_STORAGE_BUCKET=<bucket> \
-  --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID=<id> \
-  --build-arg VITE_FIREBASE_APP_ID=<appid> \
-  --build-arg VITE_GEMINI_API_KEY=<key> \
-  -t gcr.io/<PROJECT_ID>/ipl-companion .
-
-# Push to Google Container Registry
-docker push gcr.io/<PROJECT_ID>/ipl-companion
-
-# Deploy to Cloud Run
 gcloud run deploy ipl-companion \
-  --image gcr.io/<PROJECT_ID>/ipl-companion \
-  --platform managed \
+  --source . \
   --region asia-south1 \
   --allow-unauthenticated \
-  --port 8080
+  --port 8080 \
+  --set-build-env-vars \
+    VITE_FIREBASE_API_KEY=<key>,\
+    VITE_FIREBASE_AUTH_DOMAIN=<domain>,\
+    VITE_FIREBASE_PROJECT_ID=<project>,\
+    VITE_FIREBASE_STORAGE_BUCKET=<bucket>,\
+    VITE_FIREBASE_MESSAGING_SENDER_ID=<id>,\
+    VITE_FIREBASE_APP_ID=<appid>,\
+    VITE_GEMINI_API_KEY=<gemini-key> \
+  --project <PROJECT_ID>
 ```
 
-The nginx config handles SPA routing (all paths rewrite to `index.html`) and serves on port 8080 as required by Cloud Run. The multi-stage Dockerfile keeps the final image under 25 MB (nginx Alpine base + static assets only — no Node.js runtime in production).
-
-### Cloud Build (CI/CD)
+### Cloud Build (CI/CD via `cloudbuild.yaml`)
 
 ```bash
 gcloud builds submit \
-  --tag gcr.io/<PROJECT_ID>/ipl-companion \
-  --substitutions _VITE_GEMINI_API_KEY=<key>,...
+  --config cloudbuild.yaml \
+  --substitutions \
+    _VITE_FIREBASE_API_KEY=<key>,\
+    _VITE_FIREBASE_PROJECT_ID=<project>,\
+    ... \
+  --project <PROJECT_ID>
 ```
 
----
-
-## Local Setup
+### Local setup
 
 ```bash
 git clone <repo-url>
@@ -189,7 +197,11 @@ cp .env.example .env    # add your Gemini + Firebase keys (or leave blank for de
 npm run dev             # → http://localhost:5173
 ```
 
-### Demo ticket numbers (no Firebase needed)
+---
+
+## Demo Logins
+
+### Citizen App
 
 | Ticket | Name | Tier |
 |---|---|---|
@@ -199,7 +211,21 @@ npm run dev             # → http://localhost:5173
 | `IPL-SPR-007` | Neha Sharma | Press |
 | `IPL-GEN-009` | Amit Joshi | General |
 
-All 12 tickets: `IPL-VVIP-001/002`, `IPL-VIP-003/004`, `IPL-PLY-005/006`, `IPL-SPR-007/008`, `IPL-GEN-009/010/011/012`
+All tickets: `IPL-VVIP-001/002`, `IPL-VIP-003/004`, `IPL-PLY-005/006`, `IPL-SPR-007/008`, `IPL-GEN-009–012`
+OTP: **123456** (any phone number)
+
+### Security App (`/security/`)
+
+| Phone | Officer | Tier | Features unlocked |
+|---|---|---|---|
+| `+91 00001 00001` | Supt. Arvind Menon | VVIP | Convoy Manager, all dashboards |
+| `+91 00002 00002` | DSP Rajesh Sharma | VIP | Escort requests, VIP queue |
+| `+91 00003 00003` | Insp. Pradeep Nair | Player | Player queue |
+| `+91 00004 00004` | ACP Neeta Joshi | Press | Press queue |
+| `+91 00005 00005` | SI Dinesh Kumar | General | Entry queue, gate overview |
+| `+91 00006 00006` | Cmdr. Suresh Roy | Admin | Full access + User Management |
+
+OTP: **123456** (simulated)
 
 ---
 
